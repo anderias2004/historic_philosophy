@@ -52,11 +52,19 @@ const server = createServer(async (req, res) => {
       if (!searchResponse.ok) throw new Error("جست‌وجو در Wikimedia Commons ناموفق بود.");
       const searchData = await searchResponse.json();
       const pages = Object.values(searchData.query?.pages || {});
-      const candidate = pages.find(page => page.imageinfo?.[0]?.thumburl && page.imageinfo[0].mime?.startsWith("image/"));
-      if (!candidate) return send(res, 404, { error: "تصویر مناسبی پیدا نشد؛ عبارت انگلیسی دقیق‌تری امتحان کن." });
+      const candidate = pages.find(page => {
+        const info = page.imageinfo?.[0];
+        if (!info?.thumburl || !info.mime?.startsWith("image/")) return false;
+        try {
+          const url = new URL(info.thumburl);
+          return url.protocol === "https:" &&
+            url.hostname.toLowerCase() === "upload.wikimedia.org" &&
+            url.pathname.startsWith("/wikipedia/commons/");
+        } catch { return false; }
+      });
+      if (!candidate) return send(res, 404, { error: "تصویر مناسبی از آرشیو معتبر پیدا نشد؛ عبارت انگلیسی دقیق‌تری امتحان کن." });
       const info = candidate.imageinfo[0];
       const imageUrl = new URL(info.thumburl);
-      if (imageUrl.hostname !== "upload.wikimedia.org" || !imageUrl.pathname.startsWith("/wikipedia/commons/")) return send(res, 400, { error: "منبع تصویر قابل‌اعتماد نیست." });
       const imageResponse = await fetch(imageUrl);
       if (!imageResponse.ok) throw new Error("دریافت فایل تصویر ناموفق بود.");
       const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
