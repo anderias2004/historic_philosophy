@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
-import { readFile, writeFile, mkdir, stat, createReadStream } from "node:fs";
-import { readFile as readText } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { writeFile, mkdir, stat, readFile as readText } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
 
