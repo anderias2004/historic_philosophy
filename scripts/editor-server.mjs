@@ -47,7 +47,7 @@ const server = createServer(async (req, res) => {
       const query = typeof data.query === "string" ? data.query.trim() : "";
       if (query.length < 3 || query.length > 180) return send(res, 400, { error: "برای جست‌وجوی تصویر، عبارت انگلیسی ۳ تا ۱۸۰ حرفی وارد کن." });
       const api = new URL("https://commons.wikimedia.org/w/api.php");
-      api.search = new URLSearchParams({ action: "query", generator: "search", gsrsearch: query + " filetype:bitmap", gsrnamespace: "6", gsrlimit: "10", prop: "imageinfo", iiprop: "url|extmetadata", iiurlwidth: "1200", format: "json" }).toString();
+      api.search = new URLSearchParams({ action: "query", generator: "search", gsrsearch: query + " filetype:bitmap", gsrnamespace: "6", gsrlimit: "10", prop: "imageinfo", iiprop: "url|mime|extmetadata", iiurlwidth: "1200", format: "json" }).toString();
       const searchResponse = await fetch(api, { headers: { "User-Agent": "HistoricPhilosophyReelBuilder/1.0 (educational project)" } });
       if (!searchResponse.ok) throw new Error("جست‌وجو در Wikimedia Commons ناموفق بود.");
       const searchData = await searchResponse.json();
