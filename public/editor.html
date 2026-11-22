@@ -44,9 +44,25 @@ function sceneCard(s,i){return `<section class="panel scene" data-index="${i}">
 <div class="row"><div><label>شروع (ثانیه)</label><input class="start" type="number" min="7" max="64" value="${s.start}"></div><div><label>پایان (ثانیه)</label><input class="end" type="number" min="8" max="65" value="${s.end}"></div></div>
 <label>متن صحنه</label><textarea class="text" placeholder="متن روایت این صحنه">${escapeHtml(s.text||"")}</textarea>
 <label>مسیر تصویر (اختیاری)</label><input class="image" placeholder="images/example.jpg" value="${escapeHtml(s.imageFile||"")}">
+<label>یا تصویر را از گوشی بارگذاری کن</label><input class="imageFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="hint">حداکثر ۸ مگابایت؛ JPG، PNG یا WEBP</p>
 <p class="hint">اگر تصویر نداری، این قسمت را خالی بگذار.</p></section>`}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function render(){ $('scenes').innerHTML=scenes.map(sceneCard).join("");document.querySelectorAll(".remove").forEach((b,i)=>b.onclick=()=>{scenes.splice(i,1);render()})}
+function render(){
+ $('scenes').innerHTML=scenes.map(sceneCard).join('');
+ document.querySelectorAll('.remove').forEach((b,i)=>b.onclick=()=>{scenes.splice(i,1);render()});
+ document.querySelectorAll('.imageFile').forEach((input,i)=>input.onchange=async()=>{
+  const file=input.files&&input.files[0];if(!file)return;
+  if(file.size>8*1024*1024){status('حجم تصویر باید کمتر از ۸ مگابایت باشد.',false);return}
+  try{
+   status('در حال بارگذاری تصویر...',true);
+   const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('خواندن تصویر ناموفق بود'));reader.readAsDataURL(file)});
+   const response=await fetch('/api/image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dataUrl})});
+   const result=await response.json();if(!response.ok)throw new Error(result.error||'بارگذاری تصویر ناموفق بود');
+   const scene=document.querySelectorAll('.scene')[i];scene.querySelector('.image').value=result.imageFile;
+   status('تصویر صحنه '+(i+1)+' بارگذاری شد؛ حالا محتوا را ذخیره کن.',true);
+  }catch(error){status(error.message,false)}
+ });
+}
 function collect(){return {title:$('title').value.trim(),hook:$('hook').value.trim(),handle:$('handle').value.trim(),scenes:[...document.querySelectorAll(".scene")].map(el=>({start:Number(el.querySelector(".start").value),end:Number(el.querySelector(".end").value),text:el.querySelector(".text").value.trim(),...(el.querySelector(".image").value.trim()?{imageFile:el.querySelector(".image").value.trim()}: {})}))}}
 function status(message,ok){$('status').textContent=message;$('status').className=ok?'ok':'err'}
 async function load(){try{const r=await fetch('/api/content');if(!r.ok)throw new Error('خواندن محتوا ناموفق بود');const d=await r.json();$('title').value=d.title||'';$('hook').value=d.hook||'';$('handle').value=d.handle||'@historic_philosophy';scenes=d.scenes||[];render()}catch(e){status(e.message,false)}}
