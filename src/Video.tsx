@@ -3,6 +3,7 @@ import {
   AbsoluteFill,
   Audio,
   Easing,
+  Img,
   interpolate,
   staticFile,
   useCurrentFrame,
@@ -13,6 +14,8 @@ export type ReelScene = {
   text: string;
   start: number;
   end: number;
+  /** Optional image path inside public/, e.g. "images/rubicon.jpg". */
+  imageFile?: string;
 };
 
 export type HistoryReelProps = {
@@ -52,6 +55,14 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
     ? (activeScene.end - activeScene.start) * fps
     : 1;
   const sceneFadeFrames = Math.min(12, Math.floor(sceneDuration / 4));
+  const sceneProgress = activeScene
+    ? interpolate(
+        frame - activeScene.start * fps,
+        [0, sceneDuration],
+        [1, 1.12],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+      )
+    : 1;
   const sceneOpacity = activeScene
     ? interpolate(
         frame - activeScene.start * fps,
@@ -85,6 +96,27 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
             "radial-gradient(ellipse at 50% 42%, rgba(142,105,42,.32) 0%, rgba(36,29,22,.18) 34%, rgba(9,10,13,1) 76%)",
         }}
       />
+      {activeScene?.imageFile ? (
+        <>
+          <AbsoluteFill style={{ opacity: sceneOpacity }}>
+            <Img
+              src={staticFile(activeScene.imageFile)}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: `scale(${sceneProgress})`,
+              }}
+            />
+          </AbsoluteFill>
+          <AbsoluteFill
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(5,6,8,.48), rgba(5,6,8,.76))",
+            }}
+          />
+        </>
+      ) : null}
       <AbsoluteFill
         style={{
           opacity: 0.13,
