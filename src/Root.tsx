@@ -6,18 +6,25 @@ const defaultProps: HistoryReelProps = {
   title: "ژولیوس سزار",
   hook: "مردی که جمهوری روم را به زانو درآورد",
   handle: "@historic_philosophy",
+  scenes: [
+    { start: 7, end: 16, text: "در جمهوری روم، قدرت میان سنا و فرماندهان نظامی تقسیم شده بود؛ اما جاه‌طلبی یک مرد، این تعادل را برهم زد." },
+    { start: 16, end: 25, text: "ژولیوس سزار با پیروزی‌های نظامی در سرزمین گل، شهرت و نفوذی بی‌سابقه به دست آورد." },
+    { start: 25, end: 34, text: "سنا از محبوبیت او ترسید و فرمان بازگشت بدون سپاه را صادر کرد؛ تصمیمی که سرنوشت روم را تغییر داد." },
+    { start: 34, end: 43, text: "سزار در سال ۴۹ پیش از میلاد از رود روبیکن گذشت؛ اقدامی که آغاز جنگ داخلی بود." },
+    { start: 43, end: 52, text: "او رقیبانش را شکست داد و به قدرتی بی‌رقیب رسید؛ اصلاحات سیاسی و تقویمی‌اش چهره روم را تغییر داد." },
+    { start: 52, end: 61, text: "اما تمرکز قدرت در دست یک نفر، دشمنان زیادی ساخت؛ گروهی از سناتورها علیه او توطئه کردند." },
+    { start: 61, end: 65, text: "در پانزدهم مارس سال ۴۴ پیش از میلاد، سزار در مجلس سنا ترور شد؛ اما جمهوری روم دیگر به گذشته بازنگشت." },
+  ],
 };
 
-export const RemotionRoot: React.FC = () => {
-  return (
-    <Composition
-      id="HistoryReel"
-      component={HistoryReel}
-      durationInFrames={30 * 30}
-      fps={30}
-      width={1080}
-      height={1920}
-      defaultProps={defaultProps}
-    />
-  );
-};
+export const RemotionRoot: React.FC = () => (
+  <Composition
+    id="HistoryReel"
+    component={HistoryReel}
+    durationInFrames={70 * 30}
+    fps={30}
+    width={1080}
+    height={1920}
+    defaultProps={defaultProps}
+  />
+);
