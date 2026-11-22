@@ -69,10 +69,10 @@ const server = createServer(async (req, res) => {
       const imageFile = "images/" + filename;
       await writeFile(resolve(imagesDir, filename), imageBuffer);
       const meta = info.extmetadata || {};
-      const clean = value => String(value?.value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+      const clean = value => String(value?.value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
       const credit = [clean(meta.Artist), clean(meta.LicenseShortName), clean(meta.Credit)].filter(Boolean).join(" | ");
       const license = { title: candidate.title, source: info.descriptionurl, artist: clean(meta.Artist), license: clean(meta.LicenseShortName), usageTerms: clean(meta.UsageTerms), credit, downloadedAt: new Date().toISOString() };
-      await writeFile(resolve(imagesDir, filename + ".license.json"), JSON.stringify(license, null, 2) + "\\n", "utf8");
+      await writeFile(resolve(imagesDir, filename + ".license.json"), JSON.stringify(license, null, 2) + "\n", "utf8");
       return send(res, 201, { ok: true, imageFile, credit: credit || "منبع: Wikimedia Commons؛ شرایط استفاده را در صفحه منبع بررسی کن.", source: info.descriptionurl, license: license.license });
     }
     if (req.method === "GET" && req.url === "/api/content") {
