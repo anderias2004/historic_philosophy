@@ -40,6 +40,41 @@ const server = createServer(async (req, res) => {
       await writeFile(resolve(imagesDir, filename), image);
       return send(res, 201, { ok: true, imageFile: "images/" + filename, message: "تصویر با موفقیت بارگذاری شد." });
     }
+    if (req.method === "POST" && req.url === "/api/image/search") {
+      let raw = "";
+      for await (const chunk of req) { raw += chunk.toString(); if (raw.length > 20_000) return send(res, 413, { error: "عبارت جست‌وجو بیش از حد طولانی است." }); }
+      const data = JSON.parse(raw);
+      const query = typeof data.query === "string" ? data.query.trim() : "";
+      if (query.length < 3 || query.length > 180) return send(res, 400, { error: "برای جست‌وجوی تصویر، عبارت انگلیسی ۳ تا ۱۸۰ حرفی وارد کن." });
+      const api = new URL("https://commons.wikimedia.org/w/api.php");
+      api.search = new URLSearchParams({ action: "query", generator: "search", gsrsearch: query + " filetype:bitmap", gsrnamespace: "6", gsrlimit: "10", prop: "imageinfo", iiprop: "url|extmetadata", iiurlwidth: "1200", format: "json" }).toString();
+      const searchResponse = await fetch(api, { headers: { "User-Agent": "HistoricPhilosophyReelBuilder/1.0 (educational project)" } });
+      if (!searchResponse.ok) throw new Error("جست‌وجو در Wikimedia Commons ناموفق بود.");
+      const searchData = await searchResponse.json();
+      const pages = Object.values(searchData.query?.pages || {});
+      const candidate = pages.find(page => page.imageinfo?.[0]?.thumburl && page.imageinfo[0].mime?.startsWith("image/"));
+      if (!candidate) return send(res, 404, { error: "تصویر مناسبی پیدا نشد؛ عبارت انگلیسی دقیق‌تری امتحان کن." });
+      const info = candidate.imageinfo[0];
+      const imageUrl = new URL(info.thumburl);
+      if (imageUrl.hostname !== "upload.wikimedia.org" || !imageUrl.pathname.startsWith("/wikipedia/commons/")) return send(res, 400, { error: "منبع تصویر قابل‌اعتماد نیست." });
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) throw new Error("دریافت فایل تصویر ناموفق بود.");
+      const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+      if (!imageBuffer.length || imageBuffer.length > 8 * 1024 * 1024) return send(res, 413, { error: "تصویر آرشیوی بیش از ۸ مگابایت است." });
+      const contentType = imageResponse.headers.get("content-type") || "";
+      const extension = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+      const imagesDir = resolve(root, "public/images");
+      await mkdir(imagesDir, { recursive: true });
+      const filename = "commons-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7) + "." + extension;
+      const imageFile = "images/" + filename;
+      await writeFile(resolve(imagesDir, filename), imageBuffer);
+      const meta = info.extmetadata || {};
+      const clean = value => String(value?.value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+      const credit = [clean(meta.Artist), clean(meta.LicenseShortName), clean(meta.Credit)].filter(Boolean).join(" | ");
+      const license = { title: candidate.title, source: info.descriptionurl, artist: clean(meta.Artist), license: clean(meta.LicenseShortName), usageTerms: clean(meta.UsageTerms), credit, downloadedAt: new Date().toISOString() };
+      await writeFile(resolve(imagesDir, filename + ".license.json"), JSON.stringify(license, null, 2) + "\\n", "utf8");
+      return send(res, 201, { ok: true, imageFile, credit: credit || "منبع: Wikimedia Commons؛ شرایط استفاده را در صفحه منبع بررسی کن.", source: info.descriptionurl, license: license.license });
+    }
     if (req.method === "GET" && req.url === "/api/content") {
       return send(res, 200, JSON.parse(await readText(contentPath, "utf8")));
     }
