@@ -1,8 +1,10 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Audio,
   Easing,
   interpolate,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -18,6 +20,8 @@ export type HistoryReelProps = {
   hook: string;
   handle: string;
   scenes: ReelScene[];
+  /** Audio file stored in public/, for example "voiceover.mp3". */
+  voiceoverFile?: string;
 };
 
 export const HistoryReel: React.FC<HistoryReelProps> = ({
@@ -25,6 +29,7 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
   hook,
   handle,
   scenes,
+  voiceoverFile,
 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
@@ -43,12 +48,18 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const sceneOpacity = interpolate(
-    frame % (fps * 10),
-    [0, 12, fps * 10 - 12, fps * 10],
-    [0, 1, 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
+  const sceneDuration = activeScene
+    ? (activeScene.end - activeScene.start) * fps
+    : 1;
+  const sceneFadeFrames = Math.min(12, Math.floor(sceneDuration / 4));
+  const sceneOpacity = activeScene
+    ? interpolate(
+        frame - activeScene.start * fps,
+        [0, sceneFadeFrames, sceneDuration - sceneFadeFrames, sceneDuration],
+        [0, 1, 1, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+      )
+    : 0;
   const outro = interpolate(
     frame,
     [durationInFrames - 24, durationInFrames - 1],
@@ -67,6 +78,7 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
         overflow: "hidden",
       }}
     >
+      {voiceoverFile ? <Audio src={staticFile(voiceoverFile)} /> : null}
       <AbsoluteFill
         style={{
           background:
@@ -170,7 +182,7 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
               overflowWrap: "anywhere",
             }}
           >
-            {activeScene?.text ?? "ادامه روایت به‌زودی..."}
+            {activeScene?.text ?? ""}
           </div>
         </div>
       ) : (
