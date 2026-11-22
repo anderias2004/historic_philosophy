@@ -9,7 +9,6 @@ const defaultProps: HistoryReelProps = {
   title: "ژولیوس سزار",
   hook: "مردی که جمهوری روم را به زانو درآورد",
   handle: "@historic_philosophy",
-  voiceoverFile: "voiceover.mp3",
   scenes: [
     { start: 7, end: 16, text: "در جمهوری روم، قدرت میان سنا و فرماندهان نظامی تقسیم شده بود؛ اما جاه‌طلبی یک مرد، این تعادل را برهم زد." },
     { start: 16, end: 25, text: "ژولیوس سزار با پیروزی‌های نظامی در سرزمین گل، شهرت و نفوذی بی‌سابقه به دست آورد." },
