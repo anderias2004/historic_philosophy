@@ -58,7 +58,7 @@ function render(){
    const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('خواندن تصویر ناموفق بود'));reader.readAsDataURL(file)});
    const response=await fetch('/api/image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dataUrl})});
    const result=await response.json();if(!response.ok)throw new Error(result.error||'بارگذاری تصویر ناموفق بود');
-   const scene=document.querySelectorAll('.scene')[i];scene.querySelector('.image').value=result.imageFile;
+   scenes[i].imageFile=result.imageFile;const scene=document.querySelectorAll('.scene')[i];scene.querySelector('.image').value=result.imageFile;
    status('تصویر صحنه '+(i+1)+' بارگذاری شد؛ حالا محتوا را ذخیره کن.',true);
   }catch(error){status(error.message,false)}
  });
