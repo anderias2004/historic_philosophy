@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "studio": "remotion studio src/index.ts",
+    "voice:setup": "python -m pip install -r requirements.txt",
+    "voice:generate": "python scripts/generate_voice.py",
     "deploy:function": "remotion lambda functions deploy --region=eu-west-1",
     "deploy:site": "remotion lambda sites create src/index.ts --site-name=historic-philosophy --region=eu-west-1",
     "render:caesar": "remotion lambda render \"$REMOTION_SERVE_URL\" HistoryReel --region=eu-west-1 --codec=h264 --image-format=jpeg --props='{\"title\":\"ژولیوس سزار\",\"hook\":\"مردی که جمهوری روم را به زانو درآورد\",\"handle\":\"@historic_philosophy\"}'",
