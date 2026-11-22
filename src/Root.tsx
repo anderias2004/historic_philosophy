@@ -2,6 +2,9 @@ import React from "react";
 import { Composition } from "remotion";
 import { HistoryReel, type HistoryReelProps } from "./Video";
 
+const FPS = 30;
+const DURATION_SECONDS = 70;
+
 const defaultProps: HistoryReelProps = {
   title: "ژولیوس سزار",
   hook: "مردی که جمهوری روم را به زانو درآورد",
@@ -21,8 +24,8 @@ export const RemotionRoot: React.FC = () => (
   <Composition
     id="HistoryReel"
     component={HistoryReel}
-    durationInFrames={70 * 30}
-    fps={30}
+    durationInFrames={DURATION_SECONDS * FPS}
+    fps={FPS}
     width={1080}
     height={1920}
     defaultProps={defaultProps}
