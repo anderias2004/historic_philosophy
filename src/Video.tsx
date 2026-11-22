@@ -7,36 +7,55 @@ import {
   useVideoConfig,
 } from "remotion";
 
+export type ReelScene = {
+  text: string;
+  start: number;
+  end: number;
+};
+
 export type HistoryReelProps = {
   title: string;
   hook: string;
   handle: string;
+  scenes: ReelScene[];
 };
 
 export const HistoryReel: React.FC<HistoryReelProps> = ({
   title,
   hook,
   handle,
+  scenes,
 }) => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const { durationInFrames, fps } = useVideoConfig();
+  const seconds = frame / fps;
+  const activeScene = scenes.find(
+    (scene) => seconds >= scene.start && seconds < scene.end,
+  );
 
   const intro = interpolate(frame, [0, 24], [0, 1], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const titleY = interpolate(frame, [0, 26], [70, 0], {
+  const titleY = interpolate(frame, [0, 26], [65, 0], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
+  const sceneOpacity = interpolate(
+    frame % (fps * 10),
+    [0, 12, fps * 10 - 12, fps * 10],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
   const outro = interpolate(
     frame,
-    [durationInFrames - 18, durationInFrames - 1],
+    [durationInFrames - 24, durationInFrames - 1],
     [1, 0.35],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
+  const progress = frame / Math.max(1, durationInFrames - 1);
 
   return (
     <AbsoluteFill
@@ -51,123 +70,150 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
       <AbsoluteFill
         style={{
           background:
-            "radial-gradient(ellipse at 50% 38%, rgba(142,105,42,.34) 0%, rgba(36,29,22,.22) 28%, rgba(9,10,13,1) 72%)",
+            "radial-gradient(ellipse at 50% 42%, rgba(142,105,42,.32) 0%, rgba(36,29,22,.18) 34%, rgba(9,10,13,1) 76%)",
         }}
       />
       <AbsoluteFill
         style={{
-          opacity: 0.16,
+          opacity: 0.13,
           backgroundImage:
             "linear-gradient(rgba(210,176,105,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(210,176,105,.12) 1px, transparent 1px)",
           backgroundSize: "72px 72px",
-          maskImage: "linear-gradient(to bottom, black, transparent 82%)",
         }}
       />
       <div
         style={{
           position: "absolute",
-          top: 92,
-          left: 76,
-          right: 76,
+          top: 88,
+          left: 72,
+          right: 72,
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
           color: "#C6A15A",
-          fontSize: 27,
-          letterSpacing: 3,
+          fontSize: 25,
+          letterSpacing: 2,
           opacity: intro,
         }}
       >
-        <span>HISTORY  •  PHILOSOPHY</span>
+        <span>HISTORY • PHILOSOPHY</span>
         <span>تاریخ | اندیشه</span>
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          top: 410,
-          left: 90,
-          right: 90,
-          height: 2,
-          background:
-            "linear-gradient(90deg, transparent, rgba(198,161,90,.9), transparent)",
-          opacity: intro,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 520,
-          left: 90,
-          right: 90,
-          textAlign: "center",
-          opacity: intro,
-          transform: `translateY(${titleY}px)`,
-        }}
-      >
+      {frame < fps * 7 ? (
         <div
           style={{
-            color: "#C6A15A",
-            fontSize: 34,
-            fontWeight: 700,
-            marginBottom: 38,
+            position: "absolute",
+            top: 470,
+            left: 90,
+            right: 90,
+            textAlign: "center",
+            opacity: intro,
+            transform: `translateY(${titleY}px)`,
           }}
         >
-          روایت‌هایی که تاریخ را تغییر دادند
+          <div style={{ color: "#C6A15A", fontSize: 34, marginBottom: 34 }}>
+            روایت‌هایی که تاریخ را تغییر دادند
+          </div>
+          <div
+            style={{
+              fontSize: 100,
+              lineHeight: 1.35,
+              fontWeight: 800,
+              textShadow: "0 8px 35px rgba(0,0,0,.6)",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              width: 150,
+              height: 7,
+              margin: "42px auto",
+              background: "#C6A15A",
+              borderRadius: 10,
+            }}
+          />
+          <div
+            style={{
+              color: "#E8D7B5",
+              fontSize: 47,
+              lineHeight: 1.7,
+            }}
+          >
+            {hook}
+          </div>
         </div>
+      ) : frame < durationInFrames - fps * 5 ? (
         <div
           style={{
-            fontSize: 104,
-            lineHeight: 1.35,
-            fontWeight: 800,
-            textShadow: "0 8px 35px rgba(0,0,0,.6)",
-            overflowWrap: "anywhere",
+            position: "absolute",
+            top: 500,
+            left: 105,
+            right: 105,
+            minHeight: 700,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            opacity: sceneOpacity,
           }}
         >
-          {title}
+          <div
+            style={{
+              fontSize: 57,
+              lineHeight: 1.9,
+              fontWeight: 650,
+              color: "#F3EBDD",
+              textShadow: "0 5px 24px rgba(0,0,0,.75)",
+              whiteSpace: "pre-wrap",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {activeScene?.text ?? "ادامه روایت به‌زودی..."}
+          </div>
         </div>
+      ) : (
         <div
           style={{
-            width: 150,
-            height: 7,
-            margin: "44px auto",
-            background: "#C6A15A",
-            borderRadius: 10,
-          }}
-        />
-        <div
-          style={{
+            position: "absolute",
+            top: 690,
+            left: 90,
+            right: 90,
+            textAlign: "center",
             color: "#E8D7B5",
-            fontSize: 48,
-            lineHeight: 1.7,
-            fontWeight: 500,
+            fontSize: 55,
+            lineHeight: 1.8,
+            opacity: outro,
           }}
         >
-          {hook}
+          تاریخ را عمیق‌تر بشناس
+          <div style={{ color: "#C6A15A", fontSize: 38, marginTop: 30 }}>
+            ما را دنبال کن
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         style={{
           position: "absolute",
-          bottom: 150,
+          bottom: 145,
           left: 76,
           right: 76,
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
           color: "#C6A15A",
-          fontSize: 30,
+          fontSize: 29,
           opacity: outro,
         }}
       >
         <span>{handle}</span>
-        <span>برای شناخت گذشته</span>
+        <span>روایت تاریخ و فلسفه</span>
       </div>
       <div
         style={{
           position: "absolute",
-          bottom: 86,
+          bottom: 82,
           left: 76,
           right: 76,
           height: 5,
@@ -178,7 +224,7 @@ export const HistoryReel: React.FC<HistoryReelProps> = ({
       >
         <div
           style={{
-            width: `${(frame / (durationInFrames - 1)) * 100}%`,
+            width: `${progress * 100}%`,
             height: "100%",
             background: "#C6A15A",
           }}
