@@ -21,6 +21,25 @@ const server = createServer(async (req, res) => {
     if (req.method === "GET" && (req.url === "/" || req.url === "/editor")) {
       return send(res, 200, await readText(editorPath), "text/html; charset=utf-8");
     }
+    if (req.method === "POST" && req.url === "/api/image") {
+      let raw = "";
+      for await (const chunk of req) {
+        raw += chunk.toString();
+        if (raw.length > 12_000_000) return send(res, 413, { error: "حجم تصویر بیش از حد مجاز است؛ تصویر کوچک‌تری انتخاب کن." });
+      }
+      const data = JSON.parse(raw);
+      if (typeof data.dataUrl !== "string" || !data.dataUrl.startsWith("data:image/")) return send(res, 400, { error: "فایل انتخاب‌شده تصویر معتبر نیست." });
+      const match = data.dataUrl.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+      if (!match) return send(res, 400, { error: "فقط تصویرهای JPG، PNG یا WEBP پشتیبانی می‌شوند." });
+      const image = Buffer.from(match[2], "base64");
+      if (!image.length || image.length > 8 * 1024 * 1024) return send(res, 413, { error: "حجم تصویر باید کمتر از ۸ مگابایت باشد." });
+      const extension = match[1] === "jpeg" ? "jpg" : match[1];
+      const imagesDir = resolve(root, "public/images");
+      await mkdir(imagesDir, { recursive: true });
+      const filename = "scene-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + extension;
+      await writeFile(resolve(imagesDir, filename), image);
+      return send(res, 201, { ok: true, imageFile: "images/" + filename, message: "تصویر با موفقیت بارگذاری شد." });
+    }
     if (req.method === "GET" && req.url === "/api/content") {
       return send(res, 200, JSON.parse(await readText(contentPath, "utf8")));
     }
