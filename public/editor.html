@@ -43,13 +43,23 @@ function sceneCard(s,i){return `<section class="panel scene" data-index="${i}">
 <div class="scene-head"><strong>صحنه ${i+1}</strong><button class="danger remove" type="button">حذف</button></div>
 <div class="row"><div><label>شروع (ثانیه)</label><input class="start" type="number" min="7" max="64" value="${s.start}"></div><div><label>پایان (ثانیه)</label><input class="end" type="number" min="8" max="65" value="${s.end}"></div></div>
 <label>متن صحنه</label><textarea class="text" placeholder="متن روایت این صحنه">${escapeHtml(s.text||"")}</textarea>
-<label>مسیر تصویر (اختیاری)</label><input class="image" placeholder="images/example.jpg" value="${escapeHtml(s.imageFile||"")}">
+<label>جست‌وجوی خودکار تصویر آرشیوی (عبارت انگلیسی)</label><input class="imageQuery" placeholder="Julius Caesar Roman statue portrait" value="${escapeHtml(s.imageQuery||"")}"><button class="secondary autoImage" type="button">جست‌وجو و افزودن تصویر رایگان</button><p class="hint imageCredit">${escapeHtml(s.imageCredit||"تصاویر از Wikimedia Commons دریافت می‌شوند؛ مجوز و انتساب منبع کنار فایل ذخیره می‌شود.")}</p><label>مسیر تصویر (اختیاری)</label><input class="image" placeholder="images/example.jpg" value="${escapeHtml(s.imageFile||"")}">
 <label>یا تصویر را از گوشی بارگذاری کن</label><input class="imageFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="hint">حداکثر ۸ مگابایت؛ JPG، PNG یا WEBP</p>
 <p class="hint">اگر تصویر نداری، این قسمت را خالی بگذار.</p></section>`}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function render(){
  $('scenes').innerHTML=scenes.map(sceneCard).join('');
  document.querySelectorAll('.remove').forEach((b,i)=>b.onclick=()=>{scenes.splice(i,1);render()});
+ document.querySelectorAll('.autoImage').forEach((button,i)=>button.onclick=async()=>{
+  const query=document.querySelectorAll('.imageQuery')[i].value.trim();if(!query){status('ابتدا عبارت جست‌وجوی انگلیسی را وارد کن.',false);return}
+  button.disabled=true;button.textContent='در حال جست‌وجو...';
+  try{
+   const response=await fetch('/api/image/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});
+   const result=await response.json();if(!response.ok)throw new Error(result.error||'دریافت تصویر ناموفق بود');
+   scenes[i].imageFile=result.imageFile;scenes[i].imageQuery=query;scenes[i].imageCredit=result.credit;
+   render();status('تصویر آرشیوی دریافت شد. محتوا را ذخیره و سپس MP4 را بساز.',true);
+  }catch(error){status(error.message,false);button.disabled=false;button.textContent='جست‌وجو و افزودن تصویر رایگان'}
+ });
  document.querySelectorAll('.imageFile').forEach((input,i)=>input.onchange=async()=>{
   const file=input.files&&input.files[0];if(!file)return;
   if(file.size>8*1024*1024){status('حجم تصویر باید کمتر از ۸ مگابایت باشد.',false);return}
@@ -63,7 +73,7 @@ function render(){
   }catch(error){status(error.message,false)}
  });
 }
-function collect(){return {title:$('title').value.trim(),hook:$('hook').value.trim(),handle:$('handle').value.trim(),scenes:[...document.querySelectorAll(".scene")].map(el=>({start:Number(el.querySelector(".start").value),end:Number(el.querySelector(".end").value),text:el.querySelector(".text").value.trim(),...(el.querySelector(".image").value.trim()?{imageFile:el.querySelector(".image").value.trim()}: {})}))}}
+function collect(){return {title:$('title').value.trim(),hook:$('hook').value.trim(),handle:$('handle').value.trim(),scenes:[...document.querySelectorAll(".scene")].map(el=>({start:Number(el.querySelector(".start").value),end:Number(el.querySelector(".end").value),text:el.querySelector(".text").value.trim(),...(el.querySelector(".image").value.trim()?{imageFile:el.querySelector(".image").value.trim()}: {}),...(el.querySelector(".imageQuery")?.value.trim()?{imageQuery:el.querySelector(".imageQuery").value.trim()}: {}),...(scenes[Number(el.dataset.index)]?.imageCredit?{imageCredit:scenes[Number(el.dataset.index)].imageCredit}: {})}))}}
 function status(message,ok){$('status').textContent=message;$('status').className=ok?'ok':'err'}
 async function load(){try{const r=await fetch('/api/content');if(!r.ok)throw new Error('خواندن محتوا ناموفق بود');const d=await r.json();$('title').value=d.title||'';$('hook').value=d.hook||'';$('handle').value=d.handle||'@historic_philosophy';scenes=d.scenes||[];render()}catch(e){status(e.message,false)}}
 $('add').onclick=()=>{scenes.push({start:7,end:16,text:'',imageFile:''});render()};
