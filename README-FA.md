@@ -105,3 +105,21 @@ https://www.remotion.dev/docs/lambda/setup
 git pull origin main
 npm run studio
 ```
+
+
+## پنل مدیریت ریلز از طریق مرورگر موبایل
+
+برای باز کردن پنل فارسی و ویرایش ریلز بدون دست‌کاری فایل‌های کد:
+
+```bash
+git pull origin main
+npm run editor
+```
+
+در Codespaces:
+1. پس از اجرای فرمان، بخش **Ports** را باز کن.
+2. پورت **3000** را پیدا کن و گزینه **Open in Browser** را بزن.
+3. در پنل، عنوان، هوک و صحنه‌ها را ویرایش کن و روی «ذخیره محتوا در پروژه» بزن.
+4. در یک ترمینال دیگر، `npm run studio` را اجرا کن یا Studio باز را Refresh کن تا پیش‌نمایش محتوای جدید را ببینی.
+
+پنل فقط روی محیط Codespaces اجرا می‌شود و فایل `content/reel.json` را در همان workspace ذخیره می‌کند. برای استفاده شخصی، پورت را Public نکن؛ دسترسی آن را روی Private نگه دار.
