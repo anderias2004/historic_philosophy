@@ -6,9 +6,10 @@
     "studio": "remotion studio src/index.ts",
     "deploy:function": "remotion lambda functions deploy --region=eu-west-1",
     "deploy:site": "remotion lambda sites create src/index.ts --site-name=historic-philosophy --region=eu-west-1",
-    "render:caesar": "remotion lambda render --region=eu-west-1 --codec=h264 --image-format=jpeg --props='{\"title\":\"ژولیوس سزار\",\"hook\":\"مردی که جمهوری روم را به زانو درآورد\",\"handle\":\"@historic_philosophy\"}'",
+    "render:caesar": "remotion lambda render \"$REMOTION_SERVE_URL\" HistoryReel --region=eu-west-1 --codec=h264 --image-format=jpeg --props='{\"title\":\"ژولیوس سزار\",\"hook\":\"مردی که جمهوری روم را به زانو درآورد\",\"handle\":\"@historic_philosophy\"}'",
     "quotas": "remotion lambda quotas --region=eu-west-1",
-    "validate:aws": "remotion lambda policies validate"
+    "validate:aws": "remotion lambda policies validate",
+    "render:preview": "remotion render src/index.ts HistoryReel out/preview.mp4 --codec=h264"
   },
   "dependencies": {
     "@remotion/cli": "4.0.543",
