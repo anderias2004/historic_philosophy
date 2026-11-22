@@ -32,7 +32,9 @@ button{border:0;border-radius:9px;padding:12px 15px;font:inherit;font-weight:bol
 <div id="scenes"></div>
 <div class="actions"><button class="secondary" id="add">＋ افزودن صحنه</button></div>
 <button class="primary" id="save">ذخیره محتوا در پروژه</button>
+<button class="primary" id="render" style="background:#e8d7b5">ساخت فایل MP4</button>
 <div id="status" role="status"></div>
+<div id="renderStatus" role="status" class="hint" style="margin-top:12px"></div>
 <p class="hint">پس از ذخیره، برای دیدن تغییرات در Remotion Studio صفحه Studio را بازخوانی کن. تصاویر باید از قبل داخل پوشه public قرار گرفته باشند.</p>
 </main>
 <script>
@@ -50,5 +52,24 @@ function status(message,ok){$('status').textContent=message;$('status').classNam
 async function load(){try{const r=await fetch('/api/content');if(!r.ok)throw new Error('خواندن محتوا ناموفق بود');const d=await r.json();$('title').value=d.title||'';$('hook').value=d.hook||'';$('handle').value=d.handle||'@historic_philosophy';scenes=d.scenes||[];render()}catch(e){status(e.message,false)}}
 $('add').onclick=()=>{scenes.push({start:7,end:16,text:'',imageFile:''});render()};
 $('save').onclick=async()=>{try{const data=collect();const r=await fetch('/api/content',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await r.json();if(!r.ok)throw new Error(result.error||'ذخیره انجام نشد');status(result.message,true)}catch(e){status(e.message,false)}};
+async function checkRender(){
+ try{
+  const r=await fetch('/api/render-status');const s=await r.json();
+  $('renderStatus').textContent=s.message+(s.details?'\\n'+s.details:'');
+  if(s.running){$('render').disabled=true;$('render').textContent='در حال ساخت MP4...';setTimeout(checkRender,2500)}
+  else{$('render').disabled=false;$('render').textContent='ساخت فایل MP4';
+   if(s.success){$('renderStatus').innerHTML=escapeHtml(s.message)+' <a href="/preview.mp4" target="_blank" style="color:#e8d7b5">مشاهده ویدیو</a>'}
+  }
+ }catch(e){$('renderStatus').textContent=e.message}
+}
+$('render').onclick=async()=>{
+ try{
+  const save=await fetch('/api/content',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(collect())});
+  const saved=await save.json();if(!save.ok)throw new Error(saved.error||'ابتدا محتوا را ذخیره کن');
+  status('محتوا ذخیره شد؛ رندر در حال شروع است...',true);
+  const r=await fetch('/api/render',{method:'POST'});const result=await r.json();if(!r.ok)throw new Error(result.error);
+  $('render').disabled=true;$('render').textContent='در حال ساخت MP4...';checkRender();
+ }catch(e){status(e.message,false)}
+};
 load();
 </script></body></html>
