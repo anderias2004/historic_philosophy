@@ -8,10 +8,10 @@
     "voice:generate": "python scripts/generate_voice.py",
     "deploy:function": "remotion lambda functions deploy --region=eu-west-1",
     "deploy:site": "remotion lambda sites create src/index.ts --site-name=historic-philosophy --region=eu-west-1",
-    "render:caesar": "remotion lambda render \"$REMOTION_SERVE_URL\" HistoryReel --region=eu-west-1 --codec=h264 --image-format=jpeg --props='{\"title\":\"ژولیوس سزار\",\"hook\":\"مردی که جمهوری روم را به زانو درآورد\",\"handle\":\"@historic_philosophy\"}'",
+    "render:caesar": "remotion lambda render \"$REMOTION_SERVE_URL\" MotionGraphicsReel --region=eu-west-1 --codec=h264 --image-format=jpeg --props='{\"title\":\"ژولیوس سزار\",\"hook\":\"مردی که جمهوری روم را به زانو درآورد\",\"handle\":\"@historic_philosophy\"}'",
     "quotas": "remotion lambda quotas --region=eu-west-1",
     "validate:aws": "remotion lambda policies validate",
-    "render:preview": "remotion render src/index.ts HistoryReel out/preview.mp4 --codec=h264",
+    "render:preview": "remotion render src/index.ts MotionGraphicsReel out/preview.mp4 --codec=h264",
     "editor": "node scripts/editor-server.mjs"
   },
   "dependencies": {
